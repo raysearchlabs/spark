@@ -1,0 +1,64 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0" DefaultTargets="Rebuild">
+  <UsingTask TaskName="Microsoft.Build.Tasks.XmlPeek" AssemblyName="Microsoft.Build.Tasks.v4.0, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/>
+  <UsingTask TaskName="Microsoft.Build.Tasks.XmlPoke" AssemblyName="Microsoft.Build.Tasks.v4.0, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/>
+
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <Platform Condition="'$(Platform)' == ''">Any CPU</Platform>
+    <VisualStudioVersion>12.0</VisualStudioVersion>
+    <FrameworkVersion>net45</FrameworkVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <BuildSolutionDir>$(MSBuildProjectDirectory)</BuildSolutionDir>
+    <SrcDir>$(BuildSolutionDir)/src</SrcDir>
+    <TestsDir>$(BuildSolutionDir)/tests</TestsDir>
+    <NuGet>$(BuildSolutionDir)/tools/Nuget.exe</NuGet>
+    <NuGetLibDir>$(BuildSolutionDir)/build/lib/$(FrameworkVersion)</NuGetLibDir>
+    <LocalNuGetFeed Condition="'$(LocalNuGetFeed)' == ''">c:\LocalNuGetFeed</LocalNuGetFeed>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Solution Include="$(BuildSolutionDir)/Spark.sln"></Solution>
+    <SparkEngineNuSpec Include="$(BuildSolutionDir)/Spark.Engine.nuspec"/>
+  </ItemGroup>
+
+  <Target Name="Build" DependsOnTargets="RestorePackages">
+    <MSBuild Projects="@(Solution)" Properties="Configuration=$(Configuration)" Targets="Build"/>
+  </Target>
+
+  <Target Name="Clean">
+    <MSBuild Projects="@(Solution)" Properties="Configuration=$(Configuration)" Targets="Clean"/>
+  </Target>
+
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build"></Target>  
+
+  <Target Name="RestorePackages">
+    <Exec Command="&quot;$(NuGet)&quot; restore &quot;@(Solution)&quot;"></Exec>
+  </Target>
+
+  <Target Name="CopyBinaryFiles" DependsOnTargets="Build">
+    <ItemGroup>
+      <BinaryFiles Include="$(SrcDir)/Spark.Engine/bin/$(Configuration)/Spark.Engine.*"></BinaryFiles>
+    </ItemGroup>
+    <Copy SourceFiles="@(BinaryFiles)" DestinationFolder="$(NuGetLibDir)"/>
+  </Target>
+
+  <Target Name="Pack" DependsOnTargets="CopyBinaryFiles">
+    <Exec Command="&quot;$(NuGet)&quot; pack &quot;@(SparkEngineNuSpec)&quot; -symbols -OutputDirectory &quot;build"/>
+  </Target>
+
+  <Target Name="PushLocal" DependsOnTargets="Pack;GetNuSpecVersion">
+    <ItemGroup>
+      <NuGetPackages Include="build/Spark.Engine.$(SparkEngineNuSpecVersion).nupkg"/>
+      <NuGetPackages Include="build/Spark.Engine.$(SparkEngineNuSpecVersion).symbols.nupkg"/>
+    </ItemGroup>
+    <Copy SourceFiles="@(NuGetPackages)" DestinationFolder="$(LocalNuGetFeed)"/>
+  </Target>
+
+  <Target Name="GetNuSpecVersion">
+    <XmlPeek XmlInputPath="@(SparkEngineNuSpec)" Query="/package/metadata/version/text()">
+      <Output TaskParameter="Result" PropertyName="SparkEngineNuSpecVersion"/>
+    </XmlPeek>
+  </Target>
+</Project>
