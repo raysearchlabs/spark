@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <Solution Include="$(BuildSolutionDir)/Spark.sln"></Solution>
-    <SparkEngineNuSpec Include="$(BuildSolutionDir)/Spark.Engine.nuspec"/>
+    <SparkEngineNuSpec Include="$(BuildSolutionDir)/Spark.Engine-raysearch.nuspec"/>
   </ItemGroup>
 
   <Target Name="Build" DependsOnTargets="RestorePackages">
@@ -50,8 +50,8 @@
 
   <Target Name="PushLocal" DependsOnTargets="Pack;GetNuSpecVersion">
     <ItemGroup>
-      <NuGetPackages Include="build/Spark.Engine.$(SparkEngineNuSpecVersion).nupkg"/>
-      <NuGetPackages Include="build/Spark.Engine.$(SparkEngineNuSpecVersion).symbols.nupkg"/>
+      <NuGetPackages Include="build/Spark.Engine-raysearch.$(SparkEngineNuSpecVersion).nupkg"/>
+      <NuGetPackages Include="build/Spark.Engine-raysearch.$(SparkEngineNuSpecVersion).symbols.nupkg"/>
     </ItemGroup>
     <Copy SourceFiles="@(NuGetPackages)" DestinationFolder="$(LocalNuGetFeed)"/>
   </Target>

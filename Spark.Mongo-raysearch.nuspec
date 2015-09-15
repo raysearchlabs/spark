@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>Spark.Mongo</id>
+    <id>Spark.Mongo-raysearch</id>
     <version>0.50.2-beta8</version>
 	<title>Furore Spark FHIR Mongo implementation</title>
     <authors>Furore and contributors</authors>
